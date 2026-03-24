@@ -1,0 +1,35 @@
+#chatIcon {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    font-size: 30px;
+    cursor: pointer;
+}
+
+#chatBox {
+    display: none;
+    position: fixed;
+    bottom: 80px;
+    left: 20px;
+    width: 260px;
+    background: white;
+    border: 1px solid #ccc;
+    padding: 10px;
+}
+
+#chatHeader {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+#chatMessages {
+    height: 150px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    margin-bottom: 5px;
+    padding: 5px;
+}
+
+#chatInput {
+    width: 100%;
+}

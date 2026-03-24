@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Support Chat</title>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+}
+
+/* ================= ADMIN BUTTONS ================= */
+.admin-buttons {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+}
+
+.admin-buttons button {
+    padding: 8px 14px;
+    margin-left: 8px;
+    border: none;
+    cursor: pointer;
+    background: #000;
+    color: white;
+    font-size: 14px;
+}
+
+/* ================= CHAT STYLES ================= */
+
+#chatIcon {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #007bff;
+    color: white;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    z-index: 9999;
+}
+
+#chatBox {
+    position: fixed;
+    bottom: 90px;
+    right: 20px;
+    width: 320px;
+    height: 420px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+    display: none;
+    flex-direction: column;
+    z-index: 9999;
+}
+
+#chatHeader {
+    background: #007bff;
+    color: white;
+    padding: 12px;
+    font-weight: bold;
+    border-radius: 10px 10px 0 0;
+}
+
+#chatMessages {
+    flex: 1;
+    padding: 10px;
+    overflow-y: auto;
+    background: #f7f7f7;
+}
+
+#chatInputArea {
+    display: flex;
+    padding: 10px;
+    border-top: 1px solid #ddd;
+}
+
+#chatInput {
+    flex: 1;
+    padding: 8px;
+    font-size: 14px;
+}
+
+#sendBtn {
+    margin-left: 5px;
+    padding: 8px 12px;
+    cursor: pointer;
+}
+
+.msg-user {
+    text-align: right;
+    margin: 6px 0;
+}
+
+.msg-admin {
+    text-align: left;
+    margin: 6px 0;
+}
+
+.msg-system {
+    text-align: center;
+    font-size: 12px;
+    color: gray;
+    margin: 8px 0;
+}
+
+/* ================= CONTACT PAGE STYLES ================= */
+
+.hero {
+    width: 100%;
+    height: 50vh;
+    overflow: hidden;
+}
+
+.hero img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.contact-section {
+    background: #000;
+    color: white;
+    padding: 60px 20px;
+    text-align: center;
+}
+
+.contact-section h2 {
+    font-size: 28px;
+    margin-bottom: 30px;
+}
+
+.contact-section form {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.contact-section input,
+.contact-section textarea {
+    width: 100%;
+    padding: 15px;
+    margin-bottom: 20px;
+    background: transparent;
+    border: 1px solid #444;
+    color: white;
+    font-size: 16px;
+}
+
+.contact-section textarea {
+    height: 150px;
+    resize: none;
+}
+
+.checkbox-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #ccc;
+    font-size: 14px;
+    margin-bottom: 25px;
+}
+
+.send-btn {
+    background: white;
+    color: black;
+    border: none;
+    padding: 12px 40px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.disclaimer {
+    font-size: 12px;
+    color: #888;
+    margin-top: 25px;
+}
+</style>
+</head>
+
+<body>
+
+<!-- ================= ADMIN BUTTONS (ADDED) ================= -->
+<div class="admin-buttons">
+    <button onclick="location.href='http://127.0.0.1:8080/register.html'">Admin Register</button>
+    <button onclick="location.href='/login.html'">Admin Login</button>
+</div>
+
+<!-- ================= CONTACT PAGE ================= -->
+<section class="hero">
+    <img src="/images/weekendLeisure.webp" alt="Image">
+</section>
+
+<section class="contact-section">
+    <h2>Drop us a line!</h2>
+
+    <form id="contactForm">
+        <input type="text" placeholder="Name">
+        <input type="email" placeholder="Email*" required>
+        <textarea placeholder="Message"></textarea>
+
+        <label class="checkbox-container">
+            <input type="checkbox">
+            <span>Sign up for our email list for updates, promotions, and more.</span>
+        </label>
+
+        <button type="submit" class="send-btn">SEND</button>
+    </form>
+
+    <p class="disclaimer">
+        This site is protected by reCAPTCHA and the Google Privacy Policy and Terms of Service apply.
+    </p>
+</section>
+
+<!-- ================= CHAT ================= -->
+<div id="chatIcon">💬</div>
+
+<div id="chatBox">
+    <div id="chatHeader">Support</div>
+    <div id="chatMessages"></div>
+
+    <div id="chatInputArea">
+        <input type="text" id="chatInput" placeholder="Type your message..." />
+        <button id="sendBtn">Send</button>
+    </div>
+</div>
+
+<script>
+const chatIcon = document.getElementById("chatIcon");
+const chatBox = document.getElementById("chatBox");
+const chatMessages = document.getElementById("chatMessages");
+const chatInput = document.getElementById("chatInput");
+const sendBtn = document.getElementById("sendBtn");
+
+let adminOnline = false;
+
+chatIcon.addEventListener("click", () => {
+    chatBox.style.display =
+        chatBox.style.display === "flex" ? "none" : "flex";
+});
+
+const socket = new WebSocket("ws://" + location.host + "/chat");
+
+socket.addEventListener("message", (event) => {
+    const msg = event.data;
+
+    if (msg === "SYSTEM::ADMIN_ONLINE") {
+        adminOnline = true;
+        addMessage("An agent is now online.", "system");
+        return;
+    }
+
+    if (msg === "SYSTEM::ADMIN_OFFLINE") {
+        adminOnline = false;
+        addMessage("No agents available at this point, please come back later.", "system");
+        return;
+    }
+
+    if (msg.startsWith("Receiver:")) {
+        adminOnline = true;
+        addMessage(msg.replace("Receiver: ", ""), "admin");
+    }
+});
+
+sendBtn.addEventListener("click", sendMessage);
+chatInput.addEventListener("keypress", e => {
+    if (e.key === "Enter") sendMessage();
+});
+
+function sendMessage() {
+    const message = chatInput.value.trim();
+    if (!message) return;
+
+    if (!adminOnline) {
+        addMessage("No agents available at this point, please come back later.", "system");
+        chatInput.value = "";
+        return;
+    }
+
+    socket.send(message);
+    addMessage(message, "user");
+    chatInput.value = "";
+}
+
+function addMessage(text, type) {
+    const div = document.createElement("div");
+
+    if (type === "user") div.className = "msg-user";
+    else if (type === "admin") div.className = "msg-admin";
+    else div.className = "msg-system";
+
+    div.innerText = text;
+    chatMessages.appendChild(div);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+document.getElementById("contactForm").addEventListener("submit", function(e) {
+    e.preventDefault();
+    alert("Form submitted!");
+});
+</script>
+
+</body>
+</html>
