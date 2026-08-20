@@ -198,7 +198,7 @@ A simplified view of the application:
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -209,7 +209,7 @@ A simplified view of the application:
 ### Clone the Repository
 
 ```bash
-git clone <your-repository-url>
+git clone https://github.com/MaheshPolineni/SecureRealTimeBooking.git
 ```
 
 ### Build the Application
